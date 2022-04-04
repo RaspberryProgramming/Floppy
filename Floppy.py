@@ -5,6 +5,23 @@ import math
 import time
 
 """
+            ** Floppy the Flapping Bird Game **
+    
+    Created by: Camerin Figueroa
+    
+    Github: RaspberryProgramming
+    Website: https://www.camscode.com/
+    
+    Designed for the Thumby - https://thumby.us/
+    Kickstarter Page: https://www.kickstarter.com/projects/kenburns/thumby-the-tiny-playable-keychain
+    
+    Emulate using their handy Web IDE: https://code.thumby.us/
+    
+    
+"""
+
+
+"""
                 Global Vars
 """
 
@@ -78,6 +95,8 @@ def drawObj(obj):
         thumby.display.drawFilledRectangle(obj["pos"][0], obj["pos"][1], obj["dim"][0], obj["dim"][1], 1)
         
     elif obj["type"] == "text":
+        thumby.display.drawFilledRectangle(obj["pos"][0], obj["pos"][1], len(obj["text"])*6, 7, 0) # Draw blank space behind text
+
         thumby.display.drawText(obj["text"], obj["pos"][0], obj["pos"][1], 1)
         
     else:
@@ -131,8 +150,18 @@ def startScreen():
     showText = True
     
     i = 0
+    #thumby.display.drawText("Floppy", 0, 0, 1)
+    #thumby.display.drawText("Press B", 0, 16, 1)
+    #thumby.display.drawText("to start", 0, 24, 1)
+    title = {"type":"text", "text":"Floppy", "pos":[15,0], "dim":None}
+    subtext = {"type":"text", "text":"Press B", "pos":[13, 32], "dim":None}
+        #{"type":"text", "text":"to start", "pos":[22, 26], "dim":None},
+        #]
     
     while(playing):
+        
+        if (thumby.buttonB.justPressed()):
+            playing = False
         
         # Counter used to control elements of scene
         i += 1
@@ -159,12 +188,13 @@ def startScreen():
         
         gameRender(bird, pipes, -1, []) # Render Scene
         
-        print(showText)
+        drawObj(title)
+        
         if (showText):
-            thumby.display.drawText("Floppy", 0, 0, 1)
-            thumby.display.drawText("Press B", 0, 16, 1)
-            thumby.display.drawText("to start", 0, 24, 1)
-            thumby.display.update()
+            #for t in texts:
+            drawObj(subtext);
+                
+        thumby.display.update()
         
         # Render text
         
@@ -213,7 +243,7 @@ def game():
     
     score = 0
     
-    render(bird, pipes, score, soundQueue)
+    gameRender(bird, pipes, score, soundQueue)
     
     time.sleep(1)
     
@@ -252,7 +282,7 @@ def game():
             # End Game
             gameover = True
             
-        render(bird, pipes, score, soundQueue)
+        gameRender(bird, pipes, score, soundQueue)
         
         time.sleep(0.1)
             
