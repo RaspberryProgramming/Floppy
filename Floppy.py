@@ -21,6 +21,7 @@ import time
 """
 
 
+
 """
                 Global Vars
 """
@@ -48,11 +49,27 @@ obj = {
 
 bird = {
     "type": "bitmap",
-    "bitmap": bytearray([0,112,240,240,244,108,158,254,226,92,62,62,36,56,64,128,0,
+    "bitmap": [
+        bytearray([0,112,240,240,244,108,158,254,226,92,62,62,36,56,64,128,0,
            0,0,0,2,2,7,7,7,6,5,5,5,5,5,3,0,0]),
+        bytearray([0,192,208,216,220,220,62,254,226,92,62,62,36,56,64,128,0,
+           0,0,0,2,2,6,7,7,6,5,5,5,5,5,3,0,0]),
+        bytearray([0,128,176,184,188,188,126,254,226,92,62,62,36,56,64,128,0,
+           0,3,3,3,1,6,7,7,6,5,5,5,5,5,3,0,0]),
+        bytearray([0,192,208,216,220,220,62,254,226,92,62,62,36,56,64,128,0,
+           0,0,0,2,2,6,7,7,6,5,5,5,5,5,3,0,0]),
+        ],
     "pos": [def_bird_pos[0], def_bird_pos[1]],
-    "dim": [17, 12]
+    "dim": [17, 12],
+    "frame": 0
 }
+
+# BITMAP: width: 17, height: 12
+bitmap0 = bytearray([0,192,208,216,220,220,62,254,226,92,62,62,36,56,64,128,0,
+           0,0,0,2,2,6,7,7,6,5,5,5,5,5,3,0,0])
+# BITMAP: width: 17, height: 12
+bitmap2 = bytearray([0,128,176,184,188,188,126,254,226,92,62,62,36,56,64,128,0,
+           0,3,3,3,1,6,7,7,6,5,5,5,5,5,3,0,0])
 
 score_text = {
     "type": "text",
@@ -88,23 +105,51 @@ def drawObj(obj):
     drawObj: Draws and object (Stored in dictionary format).
              Should be defined like display object above
     """
+    
+    # Bitmap
     if obj["type"] == "bitmap":
-        thumby.display.blit(obj["bitmap"], obj["pos"][0], obj["pos"][1], obj["dim"][0], obj["dim"][1], -1, 0, 0)
+        # Support multiple frames to animate bitmap object
+        if (type(obj["bitmap"]) == list):
+            
+            # If we're at the last frame, reset
+            if (obj["frame"] >= len(obj["bitmap"])-1):
+                obj["frame"] = 0
+            else:
+                # Increment frame
+                obj["frame"] += 1
+            
+            bmp = obj["bitmap"][obj["frame"]] # Extract current bitmap frame
+            
+            # Display bitmap
+            thumby.display.blit(bmp, obj["pos"][0], obj["pos"][1], obj["dim"][0], obj["dim"][1], -1, 0, 0)
+        else:    
+            
+            # Display bitmap
+            thumby.display.blit(obj["bitmap"], obj["pos"][0], obj["pos"][1], obj["dim"][0], obj["dim"][1], -1, 0, 0)
         
+    # Rectangle
     elif obj["type"] == "rectangle":
         thumby.display.drawFilledRectangle(obj["pos"][0], obj["pos"][1], obj["dim"][0], obj["dim"][1], 1)
-        
+     
+    # Text  
     elif obj["type"] == "text":
+        
         thumby.display.drawFilledRectangle(obj["pos"][0], obj["pos"][1], len(obj["text"])*6, 7, 0) # Draw blank space behind text
-
+        
+        # Draw text
         thumby.display.drawText(obj["text"], obj["pos"][0], obj["pos"][1], 1)
         
     else:
+        # ERROR
         thumby.display.fill(0)
         thumby.display.drawText("ERROR", 10, 15, 1)
 
 
 def newPipe(x, y, w, h):
+    """
+    Create pipe object
+    """
+    
     return {
         "type": "rectangle",
         "pos": [x,y],
@@ -112,16 +157,22 @@ def newPipe(x, y, w, h):
     }
 
 def generatePipe():
+    """
+    Generate set of two new pipes
+    """
+    y = random.randrange(0, display_dim[1]-space_btw) # Get random y height
     
-    y = random.randrange(0, display_dim[1]-space_btw)
-    
-    
+    # Generate two new pipes with some space between
     top = newPipe(display_dim[0], (y-display_dim[1]), 10, 40)
     bottom = newPipe(display_dim[0], y+space_btw, 10, 40)
     
     return [top, bottom]
     
 def detectCollision(obj1, obj2):
+    
+    """
+    Detects if two objects are within a collision
+    """
     
     # Generate a set of points
     
@@ -143,20 +194,17 @@ def detectCollision(obj1, obj2):
     
 def startScreen():
     
-    playing = True
+    playing = True # Keeps startScreen running until b is pressed
     
-    pipes = generatePipe()
+    pipes = generatePipe() # Generate new pipes for animation
     
-    showText = True
+    showText = True # Determines if subtext will be shown
     
     i = 0
-    #thumby.display.drawText("Floppy", 0, 0, 1)
-    #thumby.display.drawText("Press B", 0, 16, 1)
-    #thumby.display.drawText("to start", 0, 24, 1)
+    
+    # Text for the screen
     title = {"type":"text", "text":"Floppy", "pos":[15,0], "dim":None}
     subtext = {"type":"text", "text":"Press B", "pos":[13, 32], "dim":None}
-        #{"type":"text", "text":"to start", "pos":[22, 26], "dim":None},
-        #]
     
     while(playing):
         
@@ -186,14 +234,14 @@ def startScreen():
 
         bird["pos"][1] = int(((math.sin(i/5)+1)*14)+2) # Change bird y pos
         
-        gameRender(bird, pipes, -1, []) # Render Scene
+        gameRender(bird, pipes, -1, []) # Render Game Scene
         
-        drawObj(title)
+        drawObj(title) # redraw the title
         
         if (showText):
-            #for t in texts:
             drawObj(subtext);
                 
+        # Update the display
         thumby.display.update()
         
         # Render text
@@ -228,6 +276,11 @@ def gameRender(bird, pipes, score, soundQueue):
     
 
 def game():
+    """
+    
+    Run the game
+    
+    """
     
     # Reset Position
     bird["pos"] = [def_bird_pos[0], def_bird_pos[1]]
@@ -237,7 +290,7 @@ def game():
     
     soundQueue = [] # Queue for storing sound notes
 
-    pipes = generatePipe()
+    pipes = generatePipe() # Generate initial pipes
     
     steps = 0
     
@@ -253,40 +306,54 @@ def game():
         
         steps += 1
         
-        if thumby.buttonA.pressed() and bird["pos"][1] > 0:
+        # Move floppy up/down
+        if thumby.buttonA.pressed() and bird["pos"][1] > 0: # Button was pressed so floppy goes up
             bird["pos"][1] -= 3
         else:
+            # Floppy drifts down
             bird["pos"][1] += 1
-            
+        
+        # Add new pipes
         if (pipes[-1]["pos"][0]+pipes[-1]["dim"][0] < display_dim[0]-26):
             pipes += generatePipe()
         
+        # Move pipes
         for p in pipes:
             p["pos"][0] -= 2
-            
+        
+        # Delete old pipes
         if pipes[0]["pos"][0]+pipes[0]["dim"][0] < 0:
             del pipes[0]
             del pipes[0]
             
+            # Increase score and play sound
             soundQueue += [1046, 1396, 1396, 1396]
             
             score += 1
             
-            
+        
+        # Detect collisions and endgame if so
         if (bird["pos"][1] > 40-bird["dim"][1]
             or detectCollision(bird, pipes[0])
             or detectCollision(bird, pipes[1])):
-                
-            print(bird["pos"][1] > 40-bird["dim"][1], detectCollision(bird, pipes[0]), detectCollision(bird, pipes[1]))
             
             # End Game
             gameover = True
             
+        # Render the game
         gameRender(bird, pipes, score, soundQueue)
         
+        # WAIT
         time.sleep(0.1)
-            
+       
+    # Return the score when finished     
     return score
+    
+"""
+
+                MAIN FUNCTION
+
+"""
 
 def main():
     
@@ -321,12 +388,18 @@ def main():
         
         
         waiting = True
+        
+        # Loop till button is pressed
         while(waiting):
-            if thumby.buttonB.pressed():
+            if thumby.buttonB.justPressed():
                 waiting = False
-
-    
-    
+                
+            # Animate bird while waiting
+            drawObj(bird)
+            
+            thumby.display.update()
+            
+            time.sleep(0.1)
 
 
 main()
